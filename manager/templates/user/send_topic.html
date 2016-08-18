@@ -1,0 +1,117 @@
+{% extends "public/base.html" %}
+{% block body %}
+    <div class="main-content">
+        <div class="page-content">
+            <div class="row">
+                <div class="col-xs-12">
+                    <div class="send-post-panel">
+                        <form class="form-horizontal" id="form_send_post" enctype="multipart/form-data" method="post"
+                              action="{{ url_for('.new_topic') }}">
+                            <div class="space-4"></div>
+                            <div class="form-group">
+                                <label class="col-sm-3 control-label no-padding-right"> 请选择话题类型</label>
+
+                                <div class="col-sm-1">
+                                    <span><input type="radio" name="type" checked value="group"/>圈子</span>
+                                    <span><input type="radio" name="type" value="all"/>全部</span>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-sm-3 control-label no-padding-right">选择背景图片</label>
+
+
+                                <div class="col-sm-9">
+                                    <input type="file" name="background" accept="image/*" data-target=""
+                                           class="form-control">
+                                </div>
+
+                            </div>
+                            <div class="space-4"></div>
+                            <div class="form-group">
+                                <label class="col-sm-3 control-label no-padding-right"> 话题名</label>
+
+                                <div class="col-sm-9">
+                                    <input type="text" name="topicName" placeholder="话题名"
+                                           class="col-xs-10 col-sm-5" required>
+                                </div>
+                            </div>
+                            <div class="space-4"></div>
+                            <div class="form-group" id="group">
+                                <label class="col-sm-3 control-label no-padding-right"> 圈子名称</label>
+
+                                <div class="col-sm-9">
+                                    <select class="chosen-select"  require
+                                            data-placeholder="请选择圈子" name="group_name[]" multiple>
+                                        <!--multiple-->
+                                        {% for g in groups %}
+                                            {% for i in g.data %}
+                                                <option  value="{{ i.gname }}/{{ i.gid }}">{{ i.gname }}</option>
+                                            {% endfor %}
+                                        {% endfor %}
+
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="space-4"></div>
+                            <div class="form-group">
+
+                                <div class="clearfix form-actions" style="background-color: #fff;border:none">
+                                    <div class="col-md-offset-3 col-md-9">
+                                        &nbsp; &nbsp; &nbsp;
+                                        <button class="btn btn-info" type="submit">
+                                            提 交
+                                        </button>
+
+                                        &nbsp; &nbsp; &nbsp;
+                                        <button class="btn" type="reset">
+                                            重 置
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!---->
+
+    <!---->
+    <script>
+        $(".chosen-select").chosen({
+            search_contains: "true",
+        });
+        $(".chosen-container-single").css('width', '41%');
+
+        function createGroupName(data) {
+            var item = data.data;
+            var panel = $('[name="group_name"]');
+            panel.empty();
+            for (var d in item) {
+                var group = $('<option value=' + item[d].gname + '/' + item[d].gid + '/' + item[d].gclass + '>' + item[d].gname + '</option>');
+                panel.append(group);
+                panel.trigger("chosen:updated")
+            }
+        }
+        $('.col-sm-1 input').change(function () {
+            var type = $(this).val();
+            if (type == 'group') {
+                $('#group').show();
+            }
+            else if (type == 'all') {
+                $('#group').hide();
+            }
+        });
+    </script>
+    <script type="text/javascript"
+            src="{{ url_for('static', filename='plugin/datetimepicker/js/bootstrap-datetimepicker.min.js') }}"
+            charset="UTF-8"></script>
+    <script type="text/javascript"
+            src="{{ url_for('static', filename='plugin/datetimepicker/js/locales/bootstrap-datetimepicker.zh-CN.js') }}"
+            charset="UTF-8"></script>
+    <script src="{{ url_for('static', filename='plugin/qiniu/js/plupload/moxie.js') }}"></script>
+    <script src="{{ url_for('static', filename='plugin/qiniu/js/plupload/plupload.dev.js') }}"></script>
+    <script src="{{ url_for('static', filename='plugin/qiniu/js/qiniu.js') }}"></script>
+{% endblock %}

@@ -1,0 +1,118 @@
+{% macro pagination_html(pagination, endpoint, query_string) -%}
+<div class="clearfix mb10">
+    <ul class="pagination">
+        <li><a href="javascript:void(0);">总共{{ pagination.total }}条/{{ pagination.pages }}页</a></li>
+        {% if pagination.has_prev %}
+        <li><a href="{{ pagination_href(endpoint, pagination.prev_num, query_string) }}">上一页</a></li>
+        {% endif %}
+        {% for page in pagination.iter_pages() %}
+        {% if page %}
+        {% if page != pagination.page %}
+        <li><a href="{{ pagination_href(endpoint, page, query_string) }}">{{ page }}</a></li>
+        {% else %}
+        <li class="active"><a href="javascript:void(0);">{{ page }}</a></li>
+        {% endif %}
+        {% else %}
+        <li><a href="javascript:void(0);">…</a></li>
+        {% endif %}
+        {% endfor %}
+        {% if pagination.has_next %}
+        <li><a href="{{ pagination_href(endpoint, pagination.next_num, query_string) }}">下一页</a></li>
+        {% endif %}
+        <li><a id='prev'>跳转至</a></li>
+        <li>
+            <a class="page-ipt-wrap"><input type='text' id='page' placeholder='' class="form-control" /></a>
+        </li>
+        <li><a>页</a></li>
+        <li><a id='go' href=''>确定</a></li>
+    </ul>
+</div>
+<script>
+    $(function () {
+        if ({{ pagination.pages }} == '0'){
+            $('.pagination').css('display', 'none');
+        }
+        $('#page').attr('placeholder', $('.pagination .active a').html());
+    })
+    //解决ie下url不正确的问题
+    $('#page').focus().blur();
+    if (document.documentElement && document.documentElement.scrollTop) {
+        document.documentElement.scrollTop = 0;
+    }else if (document.body) {
+        document.body.scrollTop = 0;
+    }
+
+    document.getElementById('page').onkeydown = function (e) {
+        var key = getKey(e);
+        if (key == 13) {
+            document.getElementById('page').blur();
+            setTimeout(function () {
+                document.getElementById('go').click();
+            }, 1);
+        }
+    }
+    var result = true;
+    var z_total_page = {{pagination.pages}};
+    $('#page').blur(function () {
+        var currLoc = window.location.toString();
+        var page = $.trim($('#page').val());
+        if (page == '') {
+            page = $('.pagination .active a').html();
+        }
+        //        $('#page').parent().attr('class', '');
+        if (!isNumber(page) && page != '') {
+            $('#page').val('');
+            $('#page').parent().attr('class', 'has-error');
+            result = false;
+        }else {
+            //check the number
+            var index = 0;
+            for (var i = 0; i < page.length; i++) {
+                if (page[i] != '0') {
+                    index = i;
+                    break;
+                }
+            }
+            page = page.substring(index);
+            if (Number(page) > Number(z_total_page)) {
+                page = z_total_page
+            }
+            if (Number(page) < 1) {
+                page = 1;
+            }
+            //分离参数和url
+            result = true;
+            var url = currLoc.split('?');
+            //截取页数
+            var tmp = url[0].split('/');
+            if (tmp[tmp.length - 1] == '' && Number(tmp[tmp.length - 2]).toString() != 'NaN') {
+                tmp.pop();
+                tmp[tmp.length - 1] = page;
+            }else {
+                tmp[tmp.length - 1] = page;
+            }
+            url[0] = tmp.join('/');
+            $('#go').attr('href', url.join('?'))
+        }
+    })
+    $('#go').click(function () {
+        if (!result) {
+            $('#page').focus();
+        }
+        return result;
+    });
+
+    function getKey(e) {
+        var e = e || event;
+        return e.keyCode || e.which || e.charCode;
+    }
+
+    function isNumber(number) {
+        var reg = /^\d+$/;
+        return reg.test(number);
+    }
+</script>
+{%- endmacro %}
+{% macro pagination_href(endpoint, page, query_string) -%}
+{{ url_for(endpoint, page=page) }}{% if query_string %}{{ '?' + query_string }}{% endif %}
+{%- endmacro %}

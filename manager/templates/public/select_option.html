@@ -1,0 +1,10 @@
+{% macro set_selected_option(items, key, value, selected_key) -%}
+<option value="">请选择</option>
+{% for item in items %}
+  {% if item[key] == selected_key %}
+      <option value="{{ item[key] }}" selected="selected">{{ item[value] }}</option>
+  {% else %}
+      <option value="{{ item[key] }}">{{ item[value] }}</option>
+  {% endif %}
+{% endfor %}
+{%- endmacro %}

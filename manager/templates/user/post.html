@@ -1,0 +1,29 @@
+{% extends "public/base.html" %}
+{% block body %}
+<div class="wrap content">
+    <div class="row">
+        <div class="table-responsive">
+           <table class="table table-bordered text-center table-condensed">
+               <tr class="success">
+                   <td width="3%">标号</td>
+                   <td width="10%">用户昵称</td>
+                   <td width="5%">用户头像</td>
+                   <td width="10%">所属圈子</td>
+                   <td width="60%">帖子内容</td>
+                   <td width="12%">更新时间</td>
+               </tr>
+               {% for x in res %}
+               <tr>
+                   <td width="3%">{{ loop.index }}</td>
+                   <td width="10%">{{ x.nickname }}</td>
+                   <td width="5%"><img src="{{ x.avatar }}" width="56" height="56"></td>
+                   <td width="10%">{{ x.group_name }}</td>
+                   <td width="60%">{{ x.content }}</td>
+                   <td width="12%">{{ x.update_time }}</td>
+               </tr>
+               {% endfor %}
+           </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

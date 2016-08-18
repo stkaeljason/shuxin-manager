@@ -1,0 +1,48 @@
+{% extends "public/base.html" %}
+{% block body %}
+    <div class="wrap content">
+        <div class="row">
+            <div class="table-responsive">
+                <table class="table table-bordered text-center table-condensed">
+                    <tr class="success">
+                        <td width="10%">标号</td>
+                        <td width="16">圈子名</td>
+                        <td width="16%">圈子人数</td>
+                        <td width="16%">帖子数</td>
+                        <td width="16%">天使成员</td>
+                    </tr>
+                    {% for x in res %}
+                        {% if x.success %}
+                            {% for i in x.data %}
+                                <tr>
+                                    <td width="10%">{{ loop.index}}</td>
+                                    <td width="16%">{{ i.gname }}</td>
+                                    {%  if(i.members != -1) %}
+                                        <td width="16%">{{ i.members }}</td>
+                                    {% else %}
+                                        <td width="16%">未知</td>
+                                    {% endif %}
+                                    <td width="16%">{{ i.postCount }}</td>
+                                {% if  i.seeds.length %}
+                                    <td width="16%">{{ i.seeds }}</td>
+                                {% else %}
+                                    <td width="16%"> 0</td>
+                                {% endif %}
+                                </tr>
+                            {% endfor %}
+
+                        {% endif %}
+
+                    {% endfor %}
+                </table>
+            </div>
+        </div>
+    </div>
+    <script>
+    $('tr').each(function(i){
+        if(i != 0){
+            $(this).find('td').eq(0).text(i)
+        }
+    })
+    </script>
+{% endblock %}

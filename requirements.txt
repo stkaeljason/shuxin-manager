@@ -1,0 +1,12 @@
+flask
+flask-sqlalchemy
+flask-script
+flask-login
+flask-redis
+flask-cache
+pymysql
+requests
+gunicorn
+gevent
+qiniu
+pillow

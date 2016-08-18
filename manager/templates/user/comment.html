@@ -1,0 +1,308 @@
+{% extends "public/base.html" %}
+{% block body %}
+    <div class="wrap content">
+            <div class="spinner">
+            <div class="spinner-container container1">
+                <div class="circle1"></div>
+                <div class="circle2"></div>
+                <div class="circle3"></div>
+                <div class="circle4"></div>
+            </div>
+            <div class="spinner-container container2">
+                <div class="circle1"></div>
+                <div class="circle2"></div>
+                <div class="circle3"></div>
+                <div class="circle4"></div>
+            </div>
+            <div class="spinner-container container3">
+                <div class="circle1"></div>
+                <div class="circle2"></div>
+                <div class="circle3"></div>
+                <div class="circle4"></div>
+            </div>
+        </div>
+        <div class="list-group"></div>
+    </div>
+    <div class="big-img-panel">
+    </div>
+    <script>
+        var main = function () {
+            window.scrollTo(0, 0);
+            var IMG_SMALL = '?imageMogr2/thumbnail/70000@'//列表图片像素大小不超过320*240
+            var IMG_BIG = '?imageMogr2/thumbnail/350000@'//大图图片像素大小
+            $(document).ready(function () {
+                $.ajax({
+                    method: 'post',
+                    data: {start: start, limit: limit},
+                    url: '/shuxin-manager/post',
+                    success: function (data) {
+                        $('.spinner').hide();
+                        createPostPanel(JSON.parse(data));
+                    }
+                })
+                function createPostPanel(posts) {
+                    var ul = $('.list-group')
+                    ul.empty();
+                    for (var p in posts) {
+                        var li = $('<a class="list-group-item"></a>');
+                        li.attr('id', posts[p].id);
+                        var avatar = $('<a class="avatar"><img src="' + posts[p].avatar + '"></a>');
+                        li.append(avatar);
+                        var infopanel = $('<div class="info-panel"></div>');
+                        var name = $('<a class="post-user-name">' + posts[p].nickname + '</a>');
+                        infopanel.append(name, '<span class="group">' + posts[p].group_name + '</span>')
+                        infopanel.append('<span class="post-time">' + posts[p].update_time + '</span>')
+                        infopanel.append('<div class="content">' + posts[p].content + '</div>');
+
+
+                        if (posts[p].pictures) {
+                            var pic = posts[p].pictures.replace("[\"", "").replace("\"]", "").split("\",\"");
+                            var picList = $('<div class="row"><table></table></div>');
+                            var i = 0;
+                            var tr = $('<tr></tr>');
+                            pic.forEach(function (item) {
+
+                                var img = $('<img id="pic" class="post-img" src="' + 'http://image.ciwei.io/' + item + IMG_SMALL + '">');
+                                //img.css('background-image','url(http://image.ciwei.io/'+ item +')');
+                                var col = $('<div class="col-img"></div>');
+                                col.append(img);
+                                if (4 == i) {
+                                    picList.append(tr);
+                                    i = 0;
+                                    tr = $('<tr></tr>');
+                                }
+                                var td = $('<td></td>');
+                                td.append(col);
+                                tr.append(td);
+                                i++;
+                            });
+                            picList.append(tr);
+                            infopanel.append(picList);
+                        }
+
+                        li.append(infopanel);
+                        var commentpanel = $('<div class="op-panel"></div>');
+                        commentpanel.append('<ul class="row_line"><li><a class="comment">评论(' + posts[p].comment_count + ')</a></li><li><a class="like">点赞(' + posts[p].like_count + ')</a></li></ul>');
+                        li.append(commentpanel);
+                        li.append('<div class="comment-panel"></div>');
+                        ul.append(li);
+                    }
+                    addEvents();
+
+                }
+
+                function createCommentPanel(comments, root_id) {
+                    var comment_panel = $('#' + root_id + ' .comment-panel')
+                    var post_user_name = $('#' + root_id + ' .post-user-name').text();
+                    comment_panel.css('display', 'block');
+                    var current, target;
+                    var commentList = $('<ul class="list-group"></ul>');
+                    for (var c in comments) {
+                        current = comments[c];
+                        var comment_user_panel = $('<div class="comment-user-panel" id="' + current.id + '"></div>');
+                        if (current.type == 0) {//对帖子进行的评论
+                            comment_user_panel.append('<img class="avatar1" src="' + current.avatar + '"></img>');
+                            //comment_user_panel.append(current.nickname + ' 回复: ' + current.content);
+                            comment_user_panel.append(current.nickname + ' 回复:');
+                            comment_user_panel.append('<span class="content">' + current.content + '</span>');
+
+                            comment_user_panel.append('<span class="comment-time">' + current.update_time + '</span>');
+
+                            var re_comment_panel = $('<div class="re-comment-panel"></div>');
+                            var nickname = $('<input type="text" class="form-control nickname" name="nickname" placeholder="请输入昵称">');
+                            var re_comment = $('<input type="text" class="form-control re-comment" name="comment" placeholder="回复 ' + current.nickname + ':">');
+                            re_comment_panel.append(nickname)
+                            re_comment_panel.append(re_comment);
+                            var send = $('<a class="btn">发送</a>');
+                            var parent = {
+                                root_id: root_id,
+                                parent_id: current.id,
+                                avatar: 'user/head/woman_head_icon_11.png',
+                                type: 1
+                            }
+                            submitComment(re_comment, nickname, send, parent);//回复评论框的点击发送评论事件
+                            re_comment_panel.append(send);
+                            comment_user_panel.append(re_comment_panel);//回复评论框
+                            var li = $('<li class="list-group-item"></li>');
+                            li.append(comment_user_panel);
+                            commentList.append(li);
+                            //comment_panel.append(comment_user_panel);
+                        }
+                        else {
+                            for (var i in comments) {//对回复进行的评论
+                                if (current.parent_id == comments[i].id) {
+                                    target = comments[i];
+                                    comment_user_panel.append('<a><img class="avatar1" src="' + current.avatar + '"></img></a>');
+                                    comment_user_panel.append('<span>' + current.nickname + '  回复  ' + '</span>');
+                                    comment_user_panel.append('<a><img class="avatar1" src="' + comments[i].avatar + '"></img></a>');
+                                    comment_user_panel.append('<span>' + comments[i].nickname + ' : ' + current.content + '</span>');
+                                    comment_user_panel.append('<span class="comment-time">' + current.update_time + '</span>');
+                                    //comment_panel.append(comment_user_panel);
+                                    var re_comment_panel = $('<div class="re-comment-panel"></div>');
+                                    var nickname = $('<input type="text" class="form-control nickname" name="nickname" placeholder="请输入昵称">');
+                                    var re_comment = $('<input type="text" class="form-control re-comment" name="comment" placeholder="回复 ' + current.nickname + ':">');
+                                    re_comment_panel.append(nickname)
+                                    re_comment_panel.append(re_comment);
+                                    var send = $('<a class="btn">发送</a>');
+                                    var parent = {
+                                        root_id: root_id,
+                                        parent_id: current.id,
+                                        avatar: 'user/head/woman_head_icon_11.png',
+                                        type: 1
+                                    }
+                                    submitComment(re_comment, nickname, send, parent);//回复评论框的点击发送评论事件
+                                    re_comment_panel.append(send);
+                                    comment_user_panel.append(re_comment_panel);//回复评论框
+                                    var li = $('<li class="list-group-item"></li>');
+                                    li.append(comment_user_panel);
+                                    commentList.append(li);
+                                }
+                            }
+                        }
+
+                    }
+
+
+                    var sub = $('<div class="comment-user-panel"></div>');
+                    var nickname = $('<input type="text" class="form-control nickname" name="nickname" placeholder="请输入昵称">');
+                    var input = $('<input type="text" class="form-control re-post" name="comment" placeholder="回复 ' + post_user_name + ':">');
+                    sub.append(nickname);
+                    sub.append(input);
+                    var send = $('<a class="btn">发送</a>');
+                    sub.append(send);
+                    var parent = {
+                        root_id: root_id,
+                        parent_id: root_id,
+                        avatar: 'user/head/woman_head_icon_11.png',
+                        type: 0
+                    }
+                    submitComment(input, nickname, send, parent);
+                    var com = $('<li class="list-group-item"></li>');
+                    com.append(sub);
+                    commentList.append(com);
+                    comment_panel.append(commentList);
+                    //comment_panel.append(sub);
+                    reCommentPanel(root_id);
+                }
+
+                function addEvents() {
+                    $('.comment').each(function () {
+                        $(this).click(function () {
+                            var item = $(this).parents('.list-group-item').first()
+                            var root_id = item.attr('id');
+                            if (item.find('.comment-panel').css('display') == 'none')
+                                $.ajax({
+                                    method: 'post',
+                                    url: '/shuxin-manager/get_comment',
+                                    data: {id: root_id},
+                                    success: function (comments) {
+                                        comments = JSON.parse(comments);
+                                        if (comments)
+                                            createCommentPanel(comments, root_id)
+
+                                    }
+                                });
+                        })
+                    });
+                    $('.like').each(function () {
+                        $(this).click(function () {
+
+                        })
+                    });
+                    $('.col-img').each(function () {
+                        $(this).click(function () {
+                            var current_img = $(this).find('img').attr('src').split('?')[0] + IMG_BIG;
+                            var imgs = [];
+                            $(this).parents('.row').first().find('img').each(function () {
+                                imgs.push($(this).attr('src').split('?')[0] + IMG_BIG)
+                            })
+                            big_img(current_img, imgs);//大图面板
+                        })
+                    })
+                    $(document.body).mousedown(function (e) {//大图面板的关闭
+                        var ignore_class = ["big-img", "big-img-panel ui-draggable", "post-img", "arrow-img"];
+                        if (ignore_class.indexOf($(e.target).attr('class')) == -1) {
+                            $('.big-img-panel').hide();
+                        }
+                    })
+
+                }
+
+                function submitComment(input, nickname, button, parent) {
+                    button.click(function () {
+                        if (input.val() && nickname.val()) {
+                            var data = {
+                                parentId: parent.parent_id,
+                                rootId: parent.root_id,
+                                content: input.val(),
+                                nickname: nickname.val(),
+                                avatar: parent.avatar,
+                                type: parent.type
+
+                            }
+                            $.ajax({
+                                data: data,
+                                method: 'post',
+                                url: '/shuxin-manager/post_comment',
+                                success: function (data) {
+                                    input.val('');
+                                    nickname.val('');
+                                }
+                            })
+                        }
+                    })
+                }
+
+                function reCommentPanel(root_id) {
+                    var comments = $('#' + root_id + ' .comment-user-panel');
+                    for (var i = 0; i < comments.length - 1; i++) {
+                        $(comments[i]).mouseenter(function () {
+                            $(this).find('.re-comment-panel').show();
+                        });
+                        $(comments[i]).mouseleave(function () {
+                            $(this).find('.re-comment-panel').hide();
+                        });
+                    }
+                }
+
+                function big_img(current_img, imgs) {
+                    var index = imgs.indexOf(current_img);
+                    var img = $('<img class="big-img" src="' + current_img + '">');
+                    img.load(function () {
+                        var panel = $(window)
+                        var img_panel = $('.big-img-panel');
+                        img_panel.empty();
+                        img_panel.append($('<a class="img-left" title="上一张"><img class="arrow-img" src="/static/common/images/arrow_left.png"></a>'));
+                        img_panel.append($('<a class="img-right" title="下一张"><img class="arrow-img" src="/static/common/images/arrow_right.png"></a>'));
+                        img_panel.append(img);
+                        img_panel.show();
+                        var img_left = (panel.width() - img.width()) / 2;
+                        img_panel.css('left', img_left);
+                        img_panel.css('top', '10%');
+                        $('.img-left').css("top", (img_panel.height() - $('img-left').height()) / 2);
+                        $('.img-right').css("top", (img_panel.height() - $('img-left').height()) / 2);
+                        /* 图片的左右切换事件*/
+                        $('.img-left').unbind('click').bind('click', function () {
+                            if (index == 0) return;
+                            else {
+                                index--;
+                                img.attr('src', imgs[index]);
+                            }
+                        })
+                        $('.img-right').unbind('click').bind('click', function () {
+                            if (index == imgs.length - 1) return;
+                            else {
+                                index++;
+                                img.attr('src', imgs[index]);
+                            }
+                        })
+                        img_panel.draggable();
+                    })
+
+                }
+            })
+        }
+        page = main
+        main();
+    </script>
+{% endblock %}

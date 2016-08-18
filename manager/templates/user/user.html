@@ -1,0 +1,81 @@
+{% extends "public/base.html" %}
+{% block body %}
+    <div class="wrap content">
+        <div class="spinner">
+            <div class="spinner-container container1">
+                <div class="circle1"></div>
+                <div class="circle2"></div>
+                <div class="circle3"></div>
+                <div class="circle4"></div>
+            </div>
+            <div class="spinner-container container2">
+                <div class="circle1"></div>
+                <div class="circle2"></div>
+                <div class="circle3"></div>
+                <div class="circle4"></div>
+            </div>
+            <div class="spinner-container container3">
+                <div class="circle1"></div>
+                <div class="circle2"></div>
+                <div class="circle3"></div>
+                <div class="circle4"></div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="table-responsive">
+                <table class="table table-bordered text-center table-condensed">
+                    <tr class="success">
+                        <td width="16%">标号</td>
+                        <td width="16%">用户昵称</td>
+                        <td width="16%">更新时间</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+    <script>
+        var main = function () {
+            window.scrollTo(0, 0);
+
+            $(document).ready(function () {
+                $.ajax({
+                    method: 'post',
+                    data: {start: start, limit: limit},
+                    url: '/shuxin-manager/get_user',
+                    success: function (data) {
+                        $('.spinner').hide();
+                        createUserPanel(JSON.parse(data));
+
+                    }
+                })
+                function createUserPanel(users) {
+                    var table = $('table');
+                    table.empty();
+                    table.append('<tr class="success">' +
+                            '<td width="16%">标号</td>' +
+                            '<td width="16%">用户昵称</td>' +
+                            '<td width="16%">所属圈子</td>' +
+                            '<td width="16%">更新时间</td>' +
+                            '</tr>');
+                    for (var u in users) {
+                        var tr = $('<tr></tr>');
+                        tr.append('<td width="16%">' + (parseInt(u) + 1) + '</td>');
+                        tr.append('<td width="16%">' + users[u].nickname + '</td>');
+                        tr.append('<td width="16%">' + users[u].groups + '</td>');
+                        var d = new Date(users[u].update_time);
+                        tr.append('<td width="16%">' + d.toLocaleString() + '</td>');
+                        table.append(tr);
+                    }
+                    /*
+                     *                <tr>
+                     <td width="16%"></td>
+                     <td width="16%"></td>
+                     <td width="16%"></td>
+                     </tr>*/
+                }
+            });
+        }
+        main();
+        page = main;
+    </script>
+{% endblock %}

@@ -1,0 +1,101 @@
+{% extends "public/base.html" %}
+{% block body %}
+    {% if info %}
+        <div class="tip-panel">{{ info }}</div>
+    {% endif  %}
+    <div class="panel panel-default">
+        <div class="panel-body">
+            <div class=" push-panel">
+                <form class="form-horizontal" role="form" action="{{ url_for('.sendpush') }}" method="post">
+                    <div class="space-4"></div>
+                    <div class="form-group">
+                        <label class="col-sm-3 control-label no-padding-right">圈子</label>
+
+                        <div class="col-sm-9">
+                            <select class="chosen-select" name="group" require
+                                    data-placeholder="请选择圈子"
+                                    style="display: none;">
+                                <option>请选择</option>
+                                <option value="education">学校圈</option>
+                                <option value="work">工作圈</option>
+                                <option value="house">小区圈</option>
+                                <option value="city">老乡圈</option>
+                                <option value="travel">旅行圈</option>
+                                <option value="movie">电影圈</option>
+                                <option value="book">书籍圈</option>
+                                <option value="game">游戏圈</option>
+                                <option value="concern">关注圈</option>
+                            </select>
+                        </div>
+
+                    </div>
+                    <div class="space-4"></div>
+                    <div class="form-group">
+                        <label class="col-sm-3 control-label no-padding-right"> 圈子名称</label>
+
+                        <div class="col-sm-9">
+                            <select class="chosen-select" name="group_name" require
+                                    data-placeholder="请选择圈子"
+                                    style="display: none;">
+                                <option>请选择</option>
+                            </select>
+                        </div>
+
+                    </div>
+                    <div class="space-4"></div>
+                    <div class="form-group">
+                        <label class="col-sm-3 control-label no-padding-right" for="form-field-2"> 推送内容</label>
+
+                        <div class="col-sm-9">
+                            <textarea required name="content" type="text" cols="4" rows="4" style="resize: none"
+                                      id="form-field-2"
+                                      placeholder="请输入"
+                                      class="col-xs-10 col-sm-5"></textarea>
+                        </div>
+                    </div>
+                    <div class="space-4"></div>
+                    <div class="form-group">
+                        <div class="col-sm-offset-3 col-sm-10">
+                            <button id="send" class="btn btn-default">发送</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <script>
+        $('#send').click(function () {
+            $('form').submit(function(e){
+                console.log('OK');
+            });
+        });
+        $(".chosen-select").chosen({
+            search_contains: "true"
+        });
+        $(".chosen-container-single").css('width', '41%');
+        var group = $('[name="group"]');
+        group.change(function (event) {
+            event.preventDefault();
+            console.log($(this).val());
+            $.ajax({
+                method: 'get',
+                url: '/shuxin-manager/get_groups_by_rule?rule=' + $(this).val(),
+                success: function (data) {
+                    createGroupName(JSON.parse(data))
+                }
+            })
+        })
+        function createGroupName(data) {
+            var item = data.data;
+            var panel = $('[name="group_name"]');
+            panel.empty();
+            for (var d in item) {
+                var group = $('<option value=' + item[d].gname + '/' + item[d].gid + '/' + item[d].gclass + '>' + item[d].gname + '</option>');
+                panel.append(group);
+                panel.trigger("chosen:updated")
+            }
+        }
+
+
+    </script>
+{% endblock %}
